@@ -101,6 +101,29 @@ Each phase writes files that the next phase reads. Clean data flow.
 
 ---
 
+### Decision: Language Plugin System for Bootstrap
+**Choice:** Bootstrap uses modular language plugins for stack-specific tooling
+
+**Rationale:** (Eric's input)
+- Bootstrap needs to set up deterministic code quality tools (linters, type checkers, formatters)
+- Different languages have different tools and conventions
+- Plugin system makes it easy to add new language support
+- Start with TypeScript and Python
+- Could have a skill that helps build new language plugins
+
+**Plugin responsibilities:**
+- Formatter (Biome, Ruff)
+- Linter (Biome, Ruff)
+- Type checker (tsc, MyPy)
+- Test runner (Vitest, pytest)
+- Package manager (npm, uv)
+- Claude Code hooks (auto-format on save)
+- Codebase navigation tools (language-specific)
+
+See `LANGUAGE-PLUGINS.md` for full design.
+
+---
+
 ## Pending Decisions
 
 ### Task Metadata Format

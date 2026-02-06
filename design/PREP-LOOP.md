@@ -291,7 +291,7 @@ PIB Builder should NOT hand off to Architect until:
 
 ## Phase 4: Bootstrap (claw-bootstrap)
 
-**Purpose:** Set up Claude Code and install tech stack tooling.
+**Purpose:** Set up Claude Code and install tech stack tooling via language plugins.
 
 **Evolved from:** ralph-bootstrap
 
@@ -302,10 +302,42 @@ PIB Builder should NOT hand off to Architect until:
 **Outputs:**
 - `.claude/` directory with settings and hooks
 - Codebase navigation subagent installed
-- Package manager initialized (`npm install` / `uv sync`)
-- Linting, formatting, type-checking configured
+- Code quality tools configured (linter, formatter, type checker)
+- Package manager initialized, dependencies installed
 - `CLAUDE.md` generated
 - `.clawrc` configured
+
+### Language Plugin System
+
+Bootstrap uses modular **language plugins** to handle stack-specific tooling. Each plugin knows how to set up:
+
+| Category | TypeScript | Python |
+|----------|------------|--------|
+| Formatter | Biome | Ruff |
+| Linter | Biome | Ruff |
+| Type Checker | tsc | MyPy |
+| Test Runner | Vitest | pytest |
+| Package Manager | npm/pnpm | uv |
+| Auto-format Hook | `biome check --write` | `ruff check --fix && ruff format` |
+
+Plugins live in `plugins/{language}/` and contain:
+- `plugin.yaml` — metadata, commands, conventions
+- `templates/` — config files (tsconfig.json, pyproject.toml, etc.)
+- `claude/` — settings.json, hooks.json, codebase-nav agent
+- `scripts/` — install.sh, verify.sh, codebase-nav tools
+
+See `LANGUAGE-PLUGINS.md` for full plugin design.
+
+### Bootstrap Flow
+
+1. Read tech stack from `.claw/specs/pib.md`
+2. Load appropriate language plugin
+3. Copy templates, replace placeholders
+4. Set up `.claude/` from plugin
+5. Run `plugin.commands.install`
+6. Run `plugin.scripts/verify.sh`
+7. Generate `CLAUDE.md`
+8. Configure `.clawrc`
 
 ### What It Creates
 
@@ -313,36 +345,24 @@ PIB Builder should NOT hand off to Architect until:
 project-name/
 ├── .claude/
 │   ├── settings.json       # Model config (Sonnet)
-│   ├── hooks.json          # Auto-format hooks
+│   ├── hooks.json          # Auto-format hooks (from plugin)
 │   └── agents/
-│       └── codebase-nav.md # Haiku exploration subagent
+│       └── codebase-nav.md # Haiku exploration subagent (from plugin)
 ├── CLAUDE.md               # Project context for Claude Code
 ├── .clawrc                 # Loop configuration
-├── tsconfig.json           # (TypeScript)
-├── biome.json              # (TypeScript)
-├── pyproject.toml          # (Python)
-└── node_modules/ or .venv/ # Dependencies installed
+├── [plugin templates]      # tsconfig.json, biome.json, pyproject.toml, etc.
+└── [dependencies]          # node_modules/ or .venv/
 ```
-
-### Stack-Specific Configuration
-
-**TypeScript:**
-- Biome for linting + formatting
-- tsconfig with strict mode
-- PostToolUse hook: `biome check --write`
-
-**Python:**
-- Ruff for linting + formatting
-- MyPy for type checking
-- PostToolUse hook: `ruff check --fix && ruff format`
 
 ### Quality Gates
 
+- [ ] Language plugin loaded successfully
+- [ ] Templates copied and placeholders replaced
 - [ ] `.claude/` settings and hooks are valid JSON
 - [ ] Codebase nav subagent installed
-- [ ] Dependencies installed successfully
-- [ ] Linting runs without config errors
-- [ ] Type checking runs without config errors
+- [ ] Dependencies installed successfully (`plugin.commands.install`)
+- [ ] Linting runs without errors (`plugin.commands.lint`)
+- [ ] Type checking runs without errors (`plugin.commands.type_check`)
 - [ ] `CLAUDE.md` generated with correct commands
 - [ ] `.clawrc` configured with appropriate ALLOWED_TOOLS
 
