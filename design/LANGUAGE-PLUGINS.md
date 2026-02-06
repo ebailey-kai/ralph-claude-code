@@ -246,6 +246,20 @@ This makes it easy to add support for:
 - PHP
 - etc.
 
+## Tool Selection Philosophy
+
+**Prefer training-data-rich tools.** The goal is smooth autonomous coding, not bleeding-edge tech. Agents are more effective with well-established tools they've seen extensively in training data.
+
+**When choosing tools for a plugin:**
+1. Is it well-documented with years of Stack Overflow answers?
+2. Is it heavily represented in GitHub repos the model trained on?
+3. Will the agent know the correct API without hallucinating?
+
+**Deviate only when:**
+- Massive productivity gain justifies the learning curve (Ruff is 100x faster)
+- Tool has reached critical mass in training data
+- Specific project requirement mandates it
+
 ## Initial Plugins
 
 ### TypeScript Plugin
@@ -256,7 +270,9 @@ This makes it easy to add support for:
 - Vitest (test runner)
 - npm or pnpm (package manager)
 
-**Why Biome:** Faster, single tool for format + lint, good defaults, less config.
+**Why Biome:** Faster, single tool for format + lint, good defaults, less config. Reaching critical mass in training data.
+
+**Why not newer frameworks?** React/Next.js over Solid/Qwik — agents know React deeply.
 
 ### Python Plugin
 
@@ -266,8 +282,9 @@ This makes it easy to add support for:
 - pytest (test runner)
 - uv (package manager, replaces pip + venv + pip-tools)
 
-**Why Ruff:** 10-100x faster than alternatives, single tool, excellent defaults.
-**Why uv:** Fast, handles venv + deps + lockfile, modern.
+**Why Ruff:** 10-100x faster than alternatives, single tool, excellent defaults. Well-documented.
+**Why uv:** Fast, handles venv + deps + lockfile, modern. Created by Astral (Ruff team).
+**Why pytest:** Battle-tested, massive training data presence. Not a newer alternative.
 
 ## Open Questions
 

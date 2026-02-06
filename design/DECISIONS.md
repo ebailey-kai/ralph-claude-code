@@ -101,6 +101,29 @@ Each phase writes files that the next phase reads. Clean data flow.
 
 ---
 
+### Decision: Prefer Training-Data-Rich Tools
+**Choice:** Default to well-established frameworks and tools that are well-represented in LLM training data
+
+**Rationale:** (Eric's input)
+- The goal is smooth autonomous coding, not bleeding-edge tech
+- Agents are more effective with tools they've seen extensively in training
+- Newer/niche tools → more hallucinations, wrong API calls, wasted loops
+- Only deviate when there's a compelling reason (significant productivity gain, specific requirement)
+
+**Implications for tool choices:**
+- **TypeScript:** React over Solid/Qwik, Express/Next.js over newer frameworks
+- **Python:** FastAPI/Flask over newer alternatives, pytest over newer test runners
+- **Tooling:** Prefer tools with years of Stack Overflow answers, blog posts, docs
+
+**When deviation is justified:**
+- Massive productivity gain (e.g., Ruff is 100x faster than alternatives, well-documented)
+- Specific project requirement (client mandates a stack)
+- Tool has reached critical mass in training data (Biome is getting there)
+
+**Plugin defaults should reflect this** — choose boring, battle-tested tools.
+
+---
+
 ### Decision: Language Plugin System for Bootstrap
 **Choice:** Bootstrap uses modular language plugins for stack-specific tooling
 

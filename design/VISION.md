@@ -52,7 +52,16 @@ Setup creates the container, PIB Builder works inside it, Architect reads what P
 
 ## Core Principles
 
-### 1. Opinionated Architecture
+### 1. Training-Data-Rich Defaults
+We prefer **well-established tools and frameworks** that are heavily represented in LLM training data:
+- Agents are more effective with familiar tools
+- Fewer hallucinations, correct API usage, smoother loops
+- "Boring" and battle-tested beats cutting-edge
+- Only deviate when there's a compelling reason
+
+This means: React over Solid, Express/Next.js over newer frameworks, pytest over niche alternatives. Our language plugins default to proven tools.
+
+### 2. Opinionated Architecture
 We enforce **Vertical Slice Architecture** with strict conventions:
 - Slices live in predictable locations
 - Every file has a header contract (docblock)
@@ -61,21 +70,21 @@ We enforce **Vertical Slice Architecture** with strict conventions:
 
 This enables **deterministic tooling** — we can build bash tools that navigate the codebase without burning LLM tokens.
 
-### 2. Context Efficiency
+### 3. Context Efficiency
 Sonnet's context window is expensive. We minimize it by:
 - Haiku prepares focused context packets per task
 - Exploration subagent (Haiku) answers complex questions, returns summaries
 - Bash tools for simple lookups (zero LLM cost)
 - Task metadata guides what context to include
 
-### 3. Explicit State Machine
+### 4. Explicit State Machine
 Every loop iteration has clear states:
 ```
 IDLE → TASK_SELECTION → CONTEXT_PREP → CODING → VALIDATION → COMMIT → [loop]
 ```
 State transitions are logged. No ambiguity about where the loop is.
 
-### 4. Dual Distribution
+### 5. Dual Distribution
 - **Standalone CLI**: Works without OpenClaw for the broader community
 - **OpenClaw Plugin**: Deep integration with supervision, cron, session spawning
 
