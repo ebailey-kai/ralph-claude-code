@@ -1,111 +1,135 @@
-# claw-builder MVP
+# claw-builder MVP: The Prep Loop
 
-Minimum viable version to validate the architecture and start dogfooding.
+The first MVP is the **complete prep loop**. It produces spec files that the existing ralph_loop.sh can consume immediately. We build value without touching the dev loop.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     MVP: PREP LOOP                              │
+│                                                                 │
+│   Setup ──▶ PIB Builder ──▶ Architect ──▶ Bootstrap ──▶ Ready   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              EXISTING: ralph_loop.sh (unchanged)                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Why This MVP?
+
+1. **Immediate value** — Prep loop outputs work with current ralph
+2. **Decoupled** — Can iterate on prep without touching dev loop
+3. **The hard part** — PIB Builder is genuinely new; worth validating first
+4. **Lower risk** — Existing ralph_loop.sh is battle-tested
 
 ## MVP Scope
 
 ### In Scope
 
-**Prep Loop (manual for v1):**
-- [ ] claw-setup skill (port from ralph-project-setup, rename .ralph → .claw)
-- [ ] claw-architect skill (port from ralph-architect, use WORKPLAN.md)
+**Phase 1: Setup**
+- [ ] claw-setup skill (port from ralph-project-setup)
+- [ ] Create project folder, git, .claw/ structure
+- [ ] Optional GitHub remote creation
+- [ ] Handoff to PIB Builder
+
+**Phase 2: PIB Builder** (the new thing)
+- [ ] Conversational interview flow
+- [ ] Perplexity research integration
+- [ ] PIB template filling
+- [ ] Write PIB to .claw/specs/pib.md
+- [ ] Write research docs to .claw/docs/
+- [ ] Completeness checking
+- [ ] Handoff to Architect
+
+**Phase 3: Architect**
+- [ ] claw-architect skill (port from ralph-architect)
+- [ ] Read PIB and research docs
+- [ ] Generate WORKPLAN.md (renamed from fix_plan.md)
+- [ ] Generate PROMPT.md, AGENT.md
+- [ ] Generate feature specs
+- [ ] Copy CODING.md to specs/stdlib/
+- [ ] Handoff to Bootstrap
+
+**Phase 4: Bootstrap**
 - [ ] claw-bootstrap skill (port from ralph-bootstrap)
-- [ ] TypeScript language plugin only
-
-**Dev Loop (the novel part):**
-- [ ] Core loop script (evolved from ralph_loop.sh)
-- [ ] Haiku task selection (simple: next unchecked)
-- [ ] Haiku context builder (port clawOS scripts)
-- [ ] Bash exploration tools (port clawOS scripts)
-- [ ] File-based events for supervision
-- [ ] Status.json tracking
-
-**Supervision:**
-- [ ] claw-supervisor skill (port from ralph-supervisor)
-- [ ] File-based event watching
-- [ ] Basic intervention capability
+- [ ] TypeScript language plugin
+- [ ] Python language plugin
+- [ ] Install tooling and dependencies
+- [ ] Set up .claude/ with hooks
+- [ ] Generate CLAUDE.md
+- [ ] Project ready for ralph_loop.sh
 
 ### Out of Scope (v1)
 
-- PIB Builder (do manually for now)
-- Haiku exploration subagent (use bash tools only)
-- Python language plugin
+- New three-tier dev loop (use existing ralph)
+- Haiku exploration subagent
 - OpenClaw plugin integration
-- Automated GitHub remote creation in setup
-- Framework sub-plugins (React, Next.js variants)
+- Additional language plugins beyond TS/Python
 
 ## Implementation Order
 
-### Phase 1: Port and Rename
+### Phase 1: Port Setup (2h)
+1. Copy ralph-project-setup → claw-setup
+2. Change .ralph → .claw references
+3. Update directory structure
+4. Test on sample project
 
-Port existing ralph skills to claw-* versions:
+### Phase 2: Build PIB Builder (4-6h)
+1. Design interview flow script/prompt
+2. Integrate Perplexity research
+3. Implement PIB template logic
+4. Write to .claw/specs/pib.md and .claw/docs/
+5. Add completeness checking
+6. Test with real project ideas
 
-1. **claw-setup** — Copy ralph-project-setup, change .ralph → .claw
-2. **claw-architect** — Copy ralph-architect, use WORKPLAN.md, update paths
-3. **claw-bootstrap** — Copy ralph-bootstrap, update for .claw
+### Phase 3: Port Architect (2-3h)
+1. Copy ralph-architect → claw-architect  
+2. Update to read PIB from .claw/specs/pib.md
+3. Rename fix_plan.md → WORKPLAN.md
+4. Update all path references
+5. Test with PIB Builder output
 
-### Phase 2: Dev Loop Core
+### Phase 4: Port Bootstrap (3-4h)
+1. Copy ralph-bootstrap → claw-bootstrap
+2. Create TypeScript plugin structure
+3. Create Python plugin structure
+4. Update for .claw/ paths
+5. Test full prep loop → ralph_loop.sh
 
-Build the new dev loop:
-
-1. **Task selection script** — Port get-next-task.sh
-2. **Context builder** — Port gather-task-context.sh, build-base-context.sh
-3. **Loop controller** — Evolve ralph_loop.sh with state machine
-4. **Event emitter** — Write events to .claw/events/
-
-### Phase 3: Exploration Tools
-
-Bash tools for codebase navigation:
-
-1. **list-slices** — List all slices in src/slices/
-2. **show-contract** — Extract header docblock from file
-3. **slice-deps** — Parse imports/exports for a slice
-4. **find-symbol** — Ripgrep with smart filtering
-
-### Phase 4: Supervision
-
-Supervision capability:
-
-1. **Event watcher** — Poll or inotify on .claw/events/
-2. **claw-supervisor skill** — Port ralph-supervisor
-3. **Basic intervention** — Send guidance to loop
-
-### Phase 5: Dogfooding
-
-Use claw-builder to continue building claw-builder:
-
-1. Set up claw-builder as a claw project
-2. Create WORKPLAN.md for remaining features
-3. Run the loop, supervised
+### Phase 5: Integration Testing (2h)
+1. Run full prep loop on test project
+2. Execute ralph_loop.sh on output
+3. Verify smooth handoff
+4. Document any gaps
 
 ## Success Criteria
 
 MVP is complete when:
 
-1. Can scaffold a new TypeScript project with claw-setup
-2. Can generate specs/WORKPLAN with claw-architect
-3. Can bootstrap tooling with claw-bootstrap
-4. Dev loop can pick tasks and run Sonnet
-5. Events written for supervision
-6. Can supervise and intervene when needed
-7. Successfully used to build more of claw-builder
+1. ✅ Can run: `Setup → PIB Builder → Architect → Bootstrap`
+2. ✅ PIB Builder interviews user and produces quality PIB
+3. ✅ Architect generates WORKPLAN.md from PIB
+4. ✅ Bootstrap sets up TypeScript or Python tooling
+5. ✅ Output works with existing ralph_loop.sh
+6. ✅ Successfully used on a real project
 
 ## Estimated Effort
 
 | Phase | Effort | Notes |
 |-------|--------|-------|
-| Phase 1 | 2-3 hours | Mostly copy/rename |
-| Phase 2 | 4-6 hours | Core loop work |
-| Phase 3 | 2-3 hours | Port existing scripts |
-| Phase 4 | 2-3 hours | Supervision setup |
-| Phase 5 | Ongoing | Dogfooding |
+| Setup | 2h | Mostly copy/rename |
+| PIB Builder | 4-6h | New skill, core value |
+| Architect | 2-3h | Port with updates |
+| Bootstrap | 3-4h | Plugin structure |
+| Integration | 2h | End-to-end testing |
 
-**Total to MVP: ~10-15 hours**
+**Total to MVP: ~13-17 hours**
 
-## Next Steps After MVP
+## After MVP
 
-1. Add Haiku exploration subagent
-2. Add PIB Builder skill
-3. Add Python language plugin
-4. OpenClaw plugin integration
-5. More sophisticated failure handling
+Once prep loop works:
+
+1. **Use it** — Generate specs for real projects, run with ralph
+2. **Iterate on PIB Builder** — Improve interview flow based on usage
+3. **Build new dev loop** — Three-tier system with Haiku custodian
+4. **OpenClaw integration** — Plugin for supervision
