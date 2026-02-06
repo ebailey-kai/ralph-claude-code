@@ -125,29 +125,47 @@ PAUSED ──[intervention]──▶ TASK_SELECTION
 
 ## WORKPLAN.md Format
 
+Tasks are ordered by the Architect in implementation order. Haiku simply picks the next unchecked item — no need for dependency analysis at runtime.
+
 ```markdown
 # WORKPLAN
 
 ## Phase 1: Foundation
 
-- [ ] Set up project structure <!-- slice:shell, complexity:low -->
-- [ ] Create base window component <!-- slice:windows, complexity:medium -->
-- [x] Implement window store <!-- slice:windows, touches:windowStore -->
+- [ ] Set up project structure
+- [ ] Create base window component
+- [x] Implement window store
 
 ## Phase 2: Features
 
-- [ ] Add window snapping <!-- slice:windows, after:window-store, complexity:high -->
-- [ ] Build taskbar <!-- slice:taskbar, after:window-component -->
+- [ ] Add window snapping
+- [ ] Build taskbar
 ```
 
-### Task Metadata (HTML Comments)
+### Optional Task Metadata (HTML Comments)
 
-| Key | Description | Values |
-|-----|-------------|--------|
-| `slice` | Primary slice affected | Slice name |
-| `touches` | Other files/stores affected | Comma-separated |
-| `complexity` | Estimated difficulty | low, medium, high |
-| `after` | Task dependency | Task description substring |
+Metadata helps the custodian build better context packets. It's optional — tasks work without it.
+
+```markdown
+- [ ] Add window snapping <!-- slice:windows, touches:windowStore -->
+```
+
+| Key | Description | Example |
+|-----|-------------|---------|
+| `slice` | Primary slice affected | `slice:windows` |
+| `touches` | Other files/stores affected | `touches:windowStore,shellStore` |
+
+**Note:** `complexity` and `after` were considered but removed. Architect handles ordering, so `after` is redundant. Complexity doesn't change how the task is executed.
+
+### Task Selection
+
+Haiku's job is simple:
+1. Find first line matching `- [ ]`
+2. Extract task text
+3. Extract optional metadata from HTML comment
+4. Build context packet based on slice/touches
+
+No intelligence needed — Architect already ordered tasks correctly.
 
 ## Context Packet
 
@@ -190,6 +208,8 @@ Files:
 
 ### Bash Tools (Zero LLM Cost)
 
+Versions of these already exist in `clawOS/scripts/context-builder/` — we'll port them.
+
 ```bash
 # List all slices
 claw tools list-slices
@@ -209,6 +229,11 @@ claw tools find-symbol snapWindow
 # → src/slices/windows/hooks/useSnap.ts:45
 # → src/store/windowStore.ts:123
 ```
+
+**Source scripts to port:**
+- `clawOS/scripts/context-builder/get-next-task.sh` — Task selection
+- `clawOS/scripts/context-builder/gather-task-context.sh` — Context building
+- `clawOS/scripts/context-builder/build-base-context.sh` — Base project info
 
 ### Haiku Subagent (Cheap LLM Cost)
 
@@ -241,13 +266,36 @@ Sonnet: "How does window dragging interact with the snap system?"
 }
 ```
 
-## Event Files
+## Supervision Architecture
 
-Written to `.claw/events/` for supervisor consumption:
+Two modes: standalone (file-based) and OpenClaw-integrated.
 
+### Standalone Mode (File-Based Events)
+
+Uses filesystem as an event queue. Simple, durable, survives crashes.
+
+**Event flow:**
+```
+Loop Controller
+      │
+      ├── Writes events to .claw/events/NNN-type.event
+      │
+      └── Updates .claw/status.json
+      
+Supervisor (external)
+      │
+      ├── Watches .claw/events/ (inotify or polling)
+      │
+      ├── Reads new .event files
+      │
+      └── Takes action (intervene, alert, log)
+```
+
+**Event file format:**
 ```json
-// 007-task-complete.event
+// .claw/events/007-task-complete.event
 {
+  "id": 7,
   "type": "task_complete",
   "task": "Implement window snapping",
   "duration_seconds": 342,
@@ -257,28 +305,74 @@ Written to `.claw/events/` for supervisor consumption:
 }
 ```
 
-```json
-// 008-validation-failed.event
-{
-  "type": "validation_failed",
-  "task": "Add keyboard shortcuts",
-  "error": "Test failed: useKeyboard.test.ts",
-  "stdout": "...",
-  "retry_count": 2,
-  "timestamp": "2026-02-06T17:25:00Z"
-}
+**Event types:**
+| Type | When | Supervisor Action |
+|------|------|-------------------|
+| `task_started` | Loop begins a task | Log |
+| `task_complete` | Task finished successfully | Log, maybe celebrate |
+| `validation_failed` | Tests/lint failed | Decide: retry or intervene |
+| `loop_stuck` | No progress for N iterations | Intervene |
+| `loop_paused` | Awaiting intervention | Respond |
+| `loop_complete` | All tasks done | Notify user |
+| `error` | Unexpected error | Debug, restart |
+
+**Supervisor polling (bash):**
+```bash
+# Simple polling supervisor
+while true; do
+  for event in .claw/events/*.event; do
+    [[ -f "$event.processed" ]] && continue
+    cat "$event"
+    touch "$event.processed"
+  done
+  sleep 30
+done
 ```
 
-## OpenClaw Plugin Integration
+**Supervisor with inotify (more efficient):**
+```bash
+inotifywait -m -e create .claw/events/ | while read dir action file; do
+  [[ "$file" == *.event ]] && cat ".claw/events/$file"
+done
+```
 
-When running as an OpenClaw plugin:
+### OpenClaw Mode (Native Integration)
 
-1. **Supervision**: Events emit to OpenClaw session instead of files
-2. **Cron**: Loop health checks via OpenClaw cron jobs
-3. **Session spawning**: Coder runs in isolated OpenClaw session
-4. **Intervention**: Supervisor can send messages directly to coder session
+When running as an OpenClaw plugin, events emit directly to sessions.
 
+**Event flow:**
+```
+Loop Controller (in isolated session)
+      │
+      ├── Emits events via OpenClaw internal API
+      │
+      └── Events route to supervisor session
+      
+Supervisor (Opus in main session)
+      │
+      ├── Receives events as system messages
+      │
+      ├── Can send messages back to coder session
+      │
+      └── Has full OpenClaw capabilities (cron, memory, etc.)
+```
+
+**Advantages over file-based:**
+- Real-time event delivery
+- Bidirectional communication (supervisor can send to coder)
+- Integrated with OpenClaw cron for scheduled health checks
+- Supervisor has access to memory, web search, etc.
+
+**Plugin config:**
 ```yaml
+# OpenClaw plugin config
+plugins:
+  claw-builder:
+    projects:
+      - path: ~/projects/my-app
+        supervision: true
+        cron_interval: 30m
+```
 # OpenClaw plugin config
 plugins:
   claw-builder:

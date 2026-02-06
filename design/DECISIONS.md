@@ -147,29 +147,80 @@ See `LANGUAGE-PLUGINS.md` for full design.
 
 ---
 
+---
+
+### Decision: Haiku Task Selection is Simple
+**Choice:** Haiku just picks the next unchecked task, no dependency analysis
+
+**Rationale:** (Eric's input)
+- Architect's job is to order tasks correctly in WORKPLAN.md
+- No need for runtime dependency analysis
+- Keeps Haiku's job simple and cheap
+- Context packet format should be easily changeable based on Sonnet feedback
+
+---
+
+### Decision: Task Metadata Format
+**Choice:** Optional HTML comments for slice/touches hints
+
+**Format:**
+```markdown
+- [ ] Add window snapping <!-- slice:windows, touches:windowStore -->
+```
+
+**Rationale:**
+- Invisible in rendered markdown, parseable
+- Optional — tasks work without it
+- Removed `complexity` and `after` — not needed since Architect handles ordering
+- Kept `slice` and `touches` to help Haiku build context packets
+
+---
+
+### Decision: No Explicit Task Dependencies
+**Choice:** Tasks don't declare dependencies; Architect orders them correctly
+
+**Rationale:** (Eric's input)
+- Architect knows the implementation order
+- Runtime dependency resolution adds complexity for no gain
+- If something needs to be reordered, edit WORKPLAN.md
+
+---
+
+### Decision: Supervision Event Delivery
+**Choice:** Dual mode — file-based for standalone, session-based for OpenClaw plugin
+
+**Standalone (file-based):**
+- Write JSON event files to `.claw/events/NNN-type.event`
+- Supervisor watches with inotify or polls
+- Simple, durable, survives crashes
+- Works without any infrastructure
+
+**OpenClaw plugin:**
+- Emit events directly to OpenClaw session
+- Bidirectional — supervisor can send messages to coder
+- Integrated with cron for scheduled health checks
+- Supervisor has full OpenClaw capabilities
+
+See ARCHITECTURE.md "Supervision Architecture" for details.
+
+---
+
+### Decision: Port clawOS Scripts
+**Choice:** Port existing scripts from `clawOS/scripts/context-builder/`
+
+**Scripts to port:**
+- `get-next-task.sh` → Task selection
+- `gather-task-context.sh` → Context building
+- `build-base-context.sh` → Base project info
+
+**Rationale:**
+- Already written and tested
+- Matches our needs
+- Don't reinvent the wheel
+
+---
+
 ## Pending Decisions
-
-### Task Metadata Format
-**Options:**
-1. HTML comments: `<!-- slice:windows, touches:windowStore -->`
-2. YAML frontmatter per task
-3. Structured WORKPLAN.md with sections per task
-
-**Leaning:** HTML comments (invisible in rendered markdown, parseable)
-
----
-
-### Task Dependencies
-**Question:** Should tasks support explicit `blocked_by` relationships?
-
-**Options:**
-1. No dependencies — just order tasks properly
-2. Simple `after: task-id` annotations
-3. Full dependency graph
-
-**Leaning:** Start simple (option 1), add if needed
-
----
 
 ### Failure Handling
 **Question:** What happens when Sonnet fails a task?
@@ -180,16 +231,3 @@ See `LANGUAGE-PLUGINS.md` for full design.
 3. Pause for supervisor intervention
 
 **Leaning:** Configurable, default to option 3
-
----
-
-### Supervision Event Delivery
-**Question:** How does supervisor receive events?
-
-**Options:**
-1. Poll status.json (current ralph approach)
-2. Webhook callback
-3. File-based pub/sub (write to events/ directory)
-4. Native OpenClaw integration (emit to session)
-
-**Leaning:** Option 3 for standalone, option 4 for plugin
