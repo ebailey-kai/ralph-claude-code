@@ -78,110 +78,86 @@ gh repo create [org/]project-name --private --source=. --push
 
 ## Phase 2: PIB Builder
 
-**Purpose:** Interview the user and build a complete Project Information Brief.
+**Purpose:** Interview the user to produce a complete Project Intent Brief — a concise, implementation-agnostic document that captures **what** to build and **why**.
 
-**Model:** Haiku or Sonnet (TBD — needs to be conversational)
+**Reference files:** `references/pib-builder/` contains:
+- `instructions.md` — Full behavioral rules (from Eric's GPT)
+- `interview-flow.md` — Step-by-step interview guide
+- `template.md` — PIB template with all sections
+
+**Model:** Sonnet (needs conversational ability)
 
 **Works in:** The project directory created by Setup
 
-**Capabilities:**
-- Conversational interview (asks clarifying questions)
-- Web research via Perplexity (tech stack validation, best practices, existing solutions)
-- Writes research findings to `.claw/docs/`
-- PIB template awareness (knows what sections need to be filled)
-- Completeness checking (won't proceed until PIB is solid)
+### Core Principles (from Eric's GPT)
+
+1. **Ask "what" questions only** — No tech, architecture, or implementation
+2. **Write to PIB as you go** — Don't wait until the end
+3. **Prefer bounded prompts** — Lists, examples, thresholds over open-ended
+4. **Decisive defaulting** — If vague after one clarification, assume conservatively and proceed
+5. **Web research for grounding** — Validate terminology and expectations, not implementation
 
 ### Interview Flow
 
-1. **Initial Capture**
-   - "What do you want to build?"
-   - "Who is it for?"
-   - "What's the core problem it solves?"
+**Step 0: Elevator Pitch**
+- "In one sentence, what do you want this to do for a user?"
 
-2. **Tech Stack Discovery**
-   - "What technologies are you thinking?"
-   - "Any constraints? (existing codebase, team skills, deployment target)"
-   - Research: validate stack choices, suggest alternatives if issues found
-   - Write findings to `.claw/docs/stack-research.md`
+**Step 1: User and Pain**
+- "Who is the primary user?"
+- "What are they doing today?"
+- "What's the most painful part of that workflow?"
 
-3. **Requirements Elaboration**
-   - "Walk me through how a user would use this"
-   - "What are the must-haves vs nice-to-haves?"
-   - "Any integrations needed? (auth, payments, APIs)"
+**Step 2: Outcome and Success**
+- "What does a great outcome look like?"
+- "How would you know it's working?"
+- **Failure boundary checkpoint:** "If the system did everything else perfectly but failed here, would you consider it a failure?"
 
-4. **Scope & Constraints**
-   - "How big is this? MVP or full product?"
-   - "Any deadline or time constraints?"
-   - "What's out of scope?"
+**Step 3: Capabilities and Non-Goals**
+- "List 3-7 must-have capabilities for v1."
+- "List 3 things we explicitly will NOT do in v1."
 
-5. **Research Phase**
-   - Verify tech stack recommendations
-   - Find existing solutions / prior art
-   - Identify potential gotchas
-   - Surface best practices for the stack
-   - Write findings to `.claw/docs/`
+**Step 4: Primary User Journeys**
+- "Walk me through the happy path in 5-8 steps."
 
-6. **Completeness Check**
-   - Review PIB template, identify gaps
-   - Ask targeted follow-up questions
-   - Present summary for user approval
-   - Write final PIB to `.claw/specs/pib.md`
+**Step 5: Quality Bar and Constraints**
+- "What absolutely cannot go wrong?"
+- "What's okay to be imperfect in v1?"
+- "Any privacy, budget, or timeline constraints?"
+
+**Step 6: Acceptance Tests**
+- Translate capabilities into Given/When/Then tests
+- Each test must be distinct and observable
+
+**Step 7: Validation**
+- Present completed PIB
+- "Is anything missing or misrepresented?"
+
+### Tech Stack (handled separately)
+
+The PIB is implementation-agnostic. Tech stack discovery happens **after** the PIB is complete, as a bridge to Architect:
+
+- "Now that we know what to build, what technologies are you thinking?"
+- Research with Perplexity to validate choices
+- Write findings to `.claw/docs/stack-research.md`
 
 ### PIB Template
 
-Written to `.claw/specs/pib.md`:
+Written to `.claw/specs/pib.md`. Full template in `references/pib-builder/template.md`.
 
-```markdown
-# Project Information Brief
+**Sections:**
+1. **Problem and User** — Who, context, pain points, why now
+2. **Outcome** — Desired outcome, success signal, failure boundary
+3. **In-Scope Capabilities** — User-facing behaviors for v1
+4. **Explicit Non-Goals** — What we will NOT do
+5. **Primary User Journeys** — 1-3 step-by-step flows
+6. **Quality Bar** — Must-not-fail, acceptable trade-offs, performance expectations
+7. **Constraints** — Privacy, compliance, budget, timeline, assumptions
+8. **Acceptance Tests** — Given/When/Then tests (5-12)
+9. **Deferred Implementation Questions** — "How" questions to resolve later
+10. **Open Questions** — True intent blockers only
+11. **Intent Clarity Self-Check** — Author confirmation checklist
 
-## Project
-- **Name:** [project name]
-- **One-liner:** [single sentence description]
-- **Problem:** [what problem does this solve?]
-- **Users:** [who is this for?]
-
-## Requirements
-
-### Must Have (MVP)
-- [requirement 1]
-- [requirement 2]
-
-### Should Have
-- [requirement 1]
-
-### Could Have (future)
-- [requirement 1]
-
-### Out of Scope
-- [explicitly excluded thing]
-
-## Tech Stack
-- **Language:** [language + version]
-- **Framework:** [framework + version]
-- **Database:** [if applicable]
-- **Auth:** [if applicable]
-- **Deployment:** [target environment]
-- **Testing:** [test framework]
-
-### Stack Rationale
-[Why these choices? What alternatives were considered?]
-
-## Architecture Notes
-[High-level architecture decisions, if any emerged during interview]
-
-## Research Findings
-[Key findings from Perplexity research — see .claw/docs/ for details]
-- [finding 1]
-- [finding 2]
-
-## Open Questions
-[Anything that needs to be resolved during architect phase]
-
-## Constraints
-- **Timeline:** [if any]
-- **Team:** [solo, pair, team size]
-- **Budget:** [if relevant]
-```
+**Key rule:** The PIB is implementation-agnostic. No tech stack, architecture, or code structure. Those come after, in the bridge to Architect.
 
 ### What PIB Builder Writes
 
@@ -197,16 +173,19 @@ Written to `.claw/specs/pib.md`:
 
 ### Quality Gates
 
-PIB Builder should NOT hand off to Architect until:
+PIB is complete when:
 
-- [ ] Project name and one-liner are clear
-- [ ] Core problem is articulated
-- [ ] At least 3 must-have requirements defined
-- [ ] Tech stack is specified and validated via research
-- [ ] Scope is defined (what's in, what's out)
+- [ ] All sections filled or marked N/A with rationale
+- [ ] Capabilities are specific and user-facing
+- [ ] Non-goals are explicit and enforceable
+- [ ] 5-12 acceptance tests exist and are observable
+- [ ] Every capability maps to ≥1 acceptance test
+- [ ] No non-goal is contradicted by a capability
+- [ ] Privacy and budget posture explicit (or assumed)
+- [ ] Open questions ≤3, and only true intent blockers
+- [ ] User has approved the PIB
+- [ ] Tech stack discovery complete (post-PIB)
 - [ ] Research docs written to `.claw/docs/`
-- [ ] PIB written to `.claw/specs/pib.md`
-- [ ] User has approved the PIB summary
 
 ---
 
