@@ -63,6 +63,31 @@ Tracking decisions made during claw-builder design.
 
 ---
 
+### Decision: Two-Loop Architecture (Prep + Dev)
+**Choice:** Separate prep loop (PIB Builder → Architect) before dev loop
+
+**Rationale:** (Eric's input)
+- Vanilla ralph assumes you arrive with requirements written — this is a gap
+- PIB Builder interviews user, does web research via Perplexity, fills out template
+- Ensures completeness before expensive dev loop starts
+- Architect (evolved from ralph-architect) takes PIB and generates specs/tasks
+- Clear handoff point between "figuring out what to build" and "building it"
+
+**Not chosen:** Single loop where Claude figures out requirements as it goes (too risky, context pollution, scope creep)
+
+---
+
+### Decision: PIB Builder Has Web Research
+**Choice:** PIB Builder can use Perplexity to research during interview
+
+**Rationale:**
+- Validates tech stack choices before committing
+- Surfaces existing solutions / prior art
+- Identifies gotchas early
+- Makes PIB more informed than user alone could produce
+
+---
+
 ## Pending Decisions
 
 ### Task Metadata Format

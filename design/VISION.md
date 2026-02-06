@@ -1,10 +1,37 @@
 # claw-builder Vision
 
-> Autonomous development loop with intelligent task selection, efficient context management, and deep OpenClaw integration.
+> Two-loop autonomous development system: intelligent project preparation followed by efficient, supervised coding.
 
 ## Overview
 
-claw-builder evolves ralph-claude-code into a more sophisticated system with a three-tier architecture:
+claw-builder evolves ralph-claude-code into a two-loop system:
+
+1. **Prep Loop** — From vague idea to ready-to-build (PIB Builder → Architect)
+2. **Dev Loop** — From tasks to working code (Haiku → Sonnet → Opus supervision)
+
+This is new. Vanilla ralph assumes you show up with requirements already written. claw-builder helps you figure out what to build before building it.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       PREP LOOP                                 │
+│                                                                 │
+│   PIB Builder ──────▶ claw-architect ──────▶ Ready              │
+│   (interview +        (specs + tasks)                           │
+│    research)                                                    │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       DEV LOOP                                  │
+│                                                                 │
+│   Haiku ──▶ Haiku ──▶ Sonnet ──▶ Validate ──▶ Commit ──▶ [loop] │
+│   (select)  (context)  (code)                                   │
+│                                                                 │
+│                    Opus (supervision)                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## The Three Tiers (Dev Loop)
 
 | Tier | Model | Role | Cost |
 |------|-------|------|------|
@@ -41,10 +68,29 @@ State transitions are logged. No ambiguity about where the loop is.
 - **Standalone CLI**: Works without OpenClaw for the broader community
 - **OpenClaw Plugin**: Deep integration with supervision, cron, session spawning
 
+## The Prep Loop (New)
+
+Vanilla ralph assumes you arrive with a PRD. claw-builder helps you build one.
+
+### PIB Builder
+- **Purpose:** Interview the user, build a complete Project Information Brief
+- **Capabilities:** Conversational interview, Perplexity research, template-aware
+- **Output:** Validated PIB document ready for Architect
+- **Quality gate:** Won't proceed until PIB is complete and approved
+
+### claw-architect (evolved from ralph-architect)
+- **Purpose:** Take PIB, generate all files for the dev loop
+- **Capabilities:** Task decomposition, spec generation, command verification
+- **Output:** Complete `.claw/` directory (WORKPLAN.md, PROMPT.md, specs, config)
+- **Quality gate:** Won't proceed until plan is approved
+
+See `PREP-LOOP.md` for full details.
+
 ## Key Differences from ralph-claude-code
 
 | Aspect | ralph | claw-builder |
 |--------|-------|--------------|
+| **Prep phase** | Manual (you write the PRD) | Automated (PIB Builder + Architect) |
 | Task selection | First unchecked item | Haiku analyzes and picks optimally |
 | Context | Static PROMPT.md | Dynamic per-task context packets |
 | Navigation | Claude figures it out | Built-in tools + Haiku subagent |
