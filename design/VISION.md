@@ -6,7 +6,7 @@
 
 claw-builder evolves ralph-claude-code into a two-loop system:
 
-1. **Prep Loop** — From vague idea to ready-to-build (PIB Builder → Architect)
+1. **Prep Loop** — From vague idea to ready-to-build (Setup → PIB → Architect → Bootstrap)
 2. **Dev Loop** — From tasks to working code (Haiku → Sonnet → Opus supervision)
 
 This is new. Vanilla ralph assumes you show up with requirements already written. claw-builder helps you figure out what to build before building it.
@@ -15,8 +15,8 @@ This is new. Vanilla ralph assumes you show up with requirements already written
 ┌─────────────────────────────────────────────────────────────────┐
 │                       PREP LOOP                                 │
 │                                                                 │
-│   PIB Builder ──▶ Setup ──▶ Architect ──▶ Bootstrap ──▶ Ready   │
-│   (interview)    (scaffold) (specs)      (tooling)              │
+│   Setup ──▶ PIB Builder ──▶ Architect ──▶ Bootstrap ──▶ Ready   │
+│  (scaffold)  (interview)     (specs)      (tooling)             │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
