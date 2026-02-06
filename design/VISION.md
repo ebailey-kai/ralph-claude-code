@@ -35,12 +35,12 @@ This is new. Vanilla ralph assumes you show up with requirements already written
 
 | Phase | Skill | Purpose |
 |-------|-------|---------|
-| 1 | **PIB Builder** (new) | Interview user, research with Perplexity, produce PIB |
-| 2 | **claw-setup** | Scaffold folder, git, basic structure |
-| 3 | **claw-architect** | Research stack, generate specs + WORKPLAN |
+| 1 | **claw-setup** | Create container: folder, git, GitHub remote, .claw/ structure |
+| 2 | **PIB Builder** (new) | Interview user, research with Perplexity, write PIB + docs |
+| 3 | **claw-architect** | Read PIB, generate specs + WORKPLAN + PROMPT |
 | 4 | **claw-bootstrap** | Set up .claude/, tooling, hooks, dependencies |
 
-After bootstrap, the dev loop can begin.
+Setup creates the container, PIB Builder works inside it, Architect reads what PIB Builder wrote, Bootstrap reads what Architect decided.
 
 ## The Three Tiers (Dev Loop)
 

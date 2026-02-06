@@ -5,31 +5,89 @@ The prep loop gets a project from "vague idea" to "ready to build" before the de
 ## Overview
 
 ```
-User has idea
+User names project
       │
       ▼
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│ PIB Builder │────▶│    Setup    │────▶│  Architect  │────▶│  Bootstrap  │────▶│    Ready    │
-│ (interview) │     │  (scaffold) │     │   (specs)   │     │  (tooling)  │     │  (dev loop) │
+│    Setup    │────▶│ PIB Builder │────▶│  Architect  │────▶│  Bootstrap  │────▶│    Ready    │
+│  (scaffold) │     │ (interview) │     │   (specs)   │     │  (tooling)  │     │  (dev loop) │
 └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
 ```
 
 | Phase | Skill | Input | Output |
 |-------|-------|-------|--------|
-| 1 | PIB Builder | User's idea | Validated PIB |
-| 2 | claw-setup | PIB | Project folder + git + structure |
-| 3 | claw-architect | PIB + folder | .claw/ specs + WORKPLAN |
-| 4 | claw-bootstrap | Specs | .claude/ + tooling + dependencies |
+| 1 | claw-setup | Project name | Folder + git + .claw/ structure + GitHub remote |
+| 2 | PIB Builder | User's idea | PIB + research docs in .claw/docs/ |
+| 3 | claw-architect | PIB | Full specs + WORKPLAN + PROMPT |
+| 4 | claw-bootstrap | Specs (knows stack) | .claude/ + tooling + dependencies |
 
-## PIB Builder
+**Key insight:** Setup just creates the container. It only needs a project name. PIB Builder then works *inside* that directory, writing the PIB and any research docs. Architect reads those to build specs. Bootstrap reads specs to know what tooling to install.
+
+---
+
+## Phase 1: Setup (claw-setup)
+
+**Purpose:** Create the project container — folder, git, GitHub remote, basic structure.
+
+**Evolved from:** ralph-project-setup
+
+**Inputs:**
+- Project name
+- Target location (`~/.openclaw/workspace/projects/`)
+- Optional: GitHub org/account for remote
+
+**Outputs:**
+- Project folder created
+- Git initialized with initial commit
+- GitHub remote created and linked
+- `.claw/` directory structure ready for PIB Builder
+- `README.md`, `SUPERVISOR.md`
+- Basic `.gitignore`
+
+### What It Creates
+
+```
+project-name/
+├── .claw/
+│   ├── specs/
+│   │   └── stdlib/       # Will hold CODING.md later
+│   ├── docs/             # PIB Builder writes research here
+│   ├── examples/
+│   └── logs/
+├── src/                  # Empty, ready for code
+├── README.md             # Basic readme with project name
+├── SUPERVISOR.md         # Supervision notes template
+└── .gitignore            # Basic ignores (replaced by Bootstrap later)
+```
+
+### GitHub Remote
+
+Setup can optionally create a GitHub repo:
+```bash
+gh repo create [org/]project-name --private --source=. --push
+```
+
+### Quality Gates
+
+- [ ] Folder created in correct location
+- [ ] Git initialized with initial commit
+- [ ] `.claw/` structure in place (especially `docs/` for PIB Builder)
+- [ ] GitHub remote created and pushed (if requested)
+
+---
+
+## Phase 2: PIB Builder
 
 **Purpose:** Interview the user and build a complete Project Information Brief.
 
 **Model:** Haiku or Sonnet (TBD — needs to be conversational)
 
+**Works in:** The project directory created by Setup
+
 **Capabilities:**
 - Conversational interview (asks clarifying questions)
 - Web research via Perplexity (tech stack validation, best practices, existing solutions)
+- Writes research findings to `.claw/docs/`
 - PIB template awareness (knows what sections need to be filled)
 - Completeness checking (won't proceed until PIB is solid)
 
@@ -44,6 +102,7 @@ User has idea
    - "What technologies are you thinking?"
    - "Any constraints? (existing codebase, team skills, deployment target)"
    - Research: validate stack choices, suggest alternatives if issues found
+   - Write findings to `.claw/docs/stack-research.md`
 
 3. **Requirements Elaboration**
    - "Walk me through how a user would use this"
@@ -60,13 +119,17 @@ User has idea
    - Find existing solutions / prior art
    - Identify potential gotchas
    - Surface best practices for the stack
+   - Write findings to `.claw/docs/`
 
 6. **Completeness Check**
    - Review PIB template, identify gaps
    - Ask targeted follow-up questions
    - Present summary for user approval
+   - Write final PIB to `.claw/specs/pib.md`
 
 ### PIB Template
+
+Written to `.claw/specs/pib.md`:
 
 ```markdown
 # Project Information Brief
@@ -107,7 +170,7 @@ User has idea
 [High-level architecture decisions, if any emerged during interview]
 
 ## Research Findings
-[Key findings from Perplexity research]
+[Key findings from Perplexity research — see .claw/docs/ for details]
 - [finding 1]
 - [finding 2]
 
@@ -120,6 +183,18 @@ User has idea
 - **Budget:** [if relevant]
 ```
 
+### What PIB Builder Writes
+
+```
+.claw/
+├── specs/
+│   └── pib.md                  # The PIB itself
+└── docs/
+    ├── stack-research.md       # Tech stack research findings
+    ├── prior-art.md            # Existing solutions found
+    └── [topic]-research.md     # Other research as needed
+```
+
 ### Quality Gates
 
 PIB Builder should NOT hand off to Architect until:
@@ -129,28 +204,37 @@ PIB Builder should NOT hand off to Architect until:
 - [ ] At least 3 must-have requirements defined
 - [ ] Tech stack is specified and validated via research
 - [ ] Scope is defined (what's in, what's out)
+- [ ] Research docs written to `.claw/docs/`
+- [ ] PIB written to `.claw/specs/pib.md`
 - [ ] User has approved the PIB summary
 
-## Architect (claw-architect)
+---
 
-**Purpose:** Take a complete PIB and generate all the files needed for the dev loop.
+## Phase 3: Architect (claw-architect)
+
+**Purpose:** Take the PIB and generate all spec files needed for the dev loop.
+
+**Evolved from:** ralph-architect
 
 **Model:** Opus (or configurable) — needs strong reasoning for architecture decisions
 
 **Inputs:**
-- Completed PIB from PIB Builder
-- Project directory (may be empty or existing codebase)
+- Completed PIB at `.claw/specs/pib.md`
+- Research docs at `.claw/docs/`
+- Project directory
 
 **Outputs:**
 - `.claw/WORKPLAN.md` — Task list with metadata
 - `.claw/PROMPT.md` — Instructions for the coder
 - `.claw/AGENT.md` — Build/test/lint commands
 - `.claw/config.yaml` — Loop configuration
-- `.claw/specs/*.md` — Detailed specs (as needed)
+- `.claw/specs/*.md` — Detailed feature specs (as needed)
+- `.claw/specs/stdlib/CODING.md` — Coding standards
 
 ### Architect Process
 
 1. **Analyze PIB**
+   - Read `.claw/specs/pib.md` and `.claw/docs/`
    - Understand requirements and constraints
    - Identify architectural patterns needed
    - Determine phase breakdown
@@ -169,74 +253,51 @@ PIB Builder should NOT hand off to Architect until:
 4. **Generate Supporting Files**
    - PROMPT.md tailored to the project
    - AGENT.md with verified commands
-   - Specs for complex features
+   - Feature specs for complex requirements
+   - Copy CODING.md to specs/stdlib/
 
 5. **Validation**
    - Check all files against quality gates
    - Present summary to user
-   - Get approval before dev loop starts
+   - Get approval before proceeding to Bootstrap
 
-### Architect Quality Gates
+### What Architect Creates
+
+```
+.claw/
+├── WORKPLAN.md                 # Task list with metadata
+├── PROMPT.md                   # Coder instructions
+├── AGENT.md                    # Build/test/lint commands
+├── config.yaml                 # Loop configuration
+└── specs/
+    ├── pib.md                  # (from PIB Builder)
+    ├── stdlib/
+    │   └── CODING.md           # Coding standards
+    ├── [feature-1].md          # Feature spec
+    └── [feature-2].md          # Feature spec
+```
+
+### Quality Gates
 
 - [ ] All PIB requirements mapped to WORKPLAN tasks
 - [ ] Tasks are atomic and independently completable
 - [ ] Task dependencies are respected in ordering
 - [ ] Build/test/lint commands verified via research
-- [ ] PROMPT.md follows critical rules (see ralph-architect skill)
-- [ ] User has approved the plan
-
-## Setup (claw-setup)
-
-**Purpose:** Scaffold project folder with git and basic structure.
-
-**Evolved from:** ralph-project-setup
-
-**Inputs:**
-- Project name (from PIB)
-- Target location (`~/.openclaw/workspace/projects/`)
-
-**Outputs:**
-- Project folder created
-- Git initialized
-- `.claw/` directory structure
-- `README.md`, `SUPERVISOR.md`
-- Basic `.gitignore`
-- Initial commit
-
-### What It Creates
-
-```
-project-name/
-├── .claw/
-│   ├── specs/
-│   │   └── stdlib/
-│   ├── examples/
-│   ├── logs/
-│   └── docs/
-├── src/
-├── README.md
-├── SUPERVISOR.md
-└── .gitignore
-```
-
-### Quality Gates
-
-- [ ] Folder created in correct location
-- [ ] Git initialized with initial commit
-- [ ] `.claw/` structure in place
-- [ ] README has project name and description from PIB
+- [ ] PROMPT.md follows critical rules (task checking, status block, etc.)
+- [ ] CODING.md copied to specs/stdlib/
+- [ ] User has approved the WORKPLAN
 
 ---
 
-## Bootstrap (claw-bootstrap)
+## Phase 4: Bootstrap (claw-bootstrap)
 
 **Purpose:** Set up Claude Code and install tech stack tooling.
 
 **Evolved from:** ralph-bootstrap
 
 **Inputs:**
-- Project folder (from Setup)
-- Tech stack info (from Architect specs)
+- Project folder with `.claw/` specs
+- Tech stack info from PIB and AGENT.md
 
 **Outputs:**
 - `.claude/` directory with settings and hooks
@@ -310,9 +371,13 @@ project-name/
 │   ├── config.yaml             # Loop configuration
 │   ├── status.json             # Loop state (created at runtime)
 │   ├── specs/
+│   │   ├── pib.md              # Project Information Brief
 │   │   ├── stdlib/
 │   │   │   └── CODING.md       # Coding standards
 │   │   └── *.md                # Feature specs
+│   ├── docs/                   # Research from PIB Builder
+│   │   ├── stack-research.md
+│   │   └── *.md
 │   ├── events/                 # Supervisor events (runtime)
 │   └── logs/                   # Loop logs (runtime)
 │
@@ -329,6 +394,8 @@ project-name/
 ├── .clawrc                     # Loop config
 └── [stack files]               # tsconfig.json, pyproject.toml, etc.
 ```
+
+---
 
 ## Open Questions
 
@@ -347,5 +414,6 @@ project-name/
    - Both?
 
 4. **How do we handle existing codebases?**
-   - PIB Builder needs to inspect and understand existing code
-   - Architect needs to work with existing patterns, not impose new ones
+   - Skip Setup (folder exists)
+   - PIB Builder inspects existing code
+   - Architect works with existing patterns, not impose new ones
