@@ -15,9 +15,9 @@ This is new. Vanilla ralph assumes you show up with requirements already written
 ┌─────────────────────────────────────────────────────────────────┐
 │                       PREP LOOP                                 │
 │                                                                 │
-│   PIB Builder ──────▶ claw-architect ──────▶ Ready              │
-│   (interview +        (specs + tasks)                           │
-│    research)                                                    │
+│   PIB Builder ──▶ Setup ──▶ Architect ──▶ Bootstrap ──▶ Ready   │
+│   (interview)    (scaffold) (specs)      (tooling)              │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -30,6 +30,17 @@ This is new. Vanilla ralph assumes you show up with requirements already written
 │                    Opus (supervision)                           │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+## Prep Loop Phases
+
+| Phase | Skill | Purpose |
+|-------|-------|---------|
+| 1 | **PIB Builder** (new) | Interview user, research with Perplexity, produce PIB |
+| 2 | **claw-setup** | Scaffold folder, git, basic structure |
+| 3 | **claw-architect** | Research stack, generate specs + WORKPLAN |
+| 4 | **claw-bootstrap** | Set up .claude/, tooling, hooks, dependencies |
+
+After bootstrap, the dev loop can begin.
 
 ## The Three Tiers (Dev Loop)
 
