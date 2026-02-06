@@ -4,7 +4,7 @@ Tracking development of the prep loop MVP.
 
 ## Current Status
 
-**Phase:** COMPLETE ✓
+**Phase:** ALL COMPLETE ✓
 **Started:** 2026-02-06 20:32 UTC
 **Cron Job:** claw-builder-dev (every 30m)
 
@@ -78,9 +78,38 @@ Tracking development of the prep loop MVP.
 - All files generated correctly
 - Ready for use with existing ralph_loop.sh
 
-## MVP COMPLETE! 🎉
+### 2026-02-06 21:40 UTC
+- Phase 6 COMPLETE: Dev loop core
+  - claw_loop.sh with state machine
+  - get-next-task.sh for task selection
+  - build-context.sh for context building
+  - File-based event system
 
-All skills created:
+### 2026-02-06 21:41 UTC
+- Phase 7 COMPLETE: claw-supervisor skill
+  - Event watching docs
+  - Intervention process
+  - Cron setup instructions
+
+### 2026-02-06 21:42 UTC
+- Phase 8 COMPLETE: Exploration tools
+  - explore.sh (Haiku-powered)
+  - list-slices.sh
+  - show-contract.sh
+  - find-symbol.sh
+  - slice-deps.sh
+
+## ALL PHASES COMPLETE! 🎉🎉🎉
+
+claw-builder is fully implemented:
+- Prep loop: Setup → PIB Builder → Architect → Bootstrap
+- Dev loop: claw_loop.sh with three-tier architecture
+- Supervision: claw-supervisor skill
+- Exploration: Haiku subagent + bash tools
+
+## MVP COMPLETE! 🎉 (Prep Loop)
+
+All prep loop skills created:
 - ~/.openclaw/workspace/skills/claw-setup/
 - ~/.openclaw/workspace/skills/claw-pib-builder/
 - ~/.openclaw/workspace/skills/claw-architect/
@@ -88,3 +117,32 @@ All skills created:
 
 Test project at:
 - ~/.openclaw/workspace/projects/test-claw-project/
+
+---
+
+## Phase 2: Three-Tier Dev Loop - COMPLETE! 🎉
+
+All dev loop components created:
+
+### Phase 6: Dev Loop Core - COMPLETE ✓
+- [x] Create claw_loop.sh with three-tier architecture
+- [x] Implement task selection (get-next-task.sh)
+- [x] Implement context builder (build-context.sh)
+- [x] Implement state machine (IDLE → SELECT → PREP → CODE → VALIDATE → COMMIT)
+- [x] Implement file-based event system
+- [x] Test scripts with test-claw-project
+
+### Phase 7: Supervision Skill - COMPLETE ✓
+- [x] Create claw-supervisor skill
+- [x] Document event watching
+- [x] Document intervention process
+- [x] Document cron setup for automated supervision
+
+### Phase 8: Haiku Exploration Subagent - COMPLETE ✓
+- [x] Create explore.sh (Haiku-powered exploration)
+- [x] Create bash tools (zero LLM cost):
+  - list-slices.sh
+  - show-contract.sh
+  - find-symbol.sh
+  - slice-deps.sh
+- [x] Tools available for Sonnet to use during coding
