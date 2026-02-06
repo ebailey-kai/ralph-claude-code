@@ -64,16 +64,29 @@ Tracking decisions made during claw-builder design.
 ---
 
 ### Decision: Two-Loop Architecture (Prep + Dev)
-**Choice:** Separate prep loop (PIB Builder → Architect) before dev loop
+**Choice:** Separate prep loop before dev loop
 
 **Rationale:** (Eric's input)
 - Vanilla ralph assumes you arrive with requirements written — this is a gap
-- PIB Builder interviews user, does web research via Perplexity, fills out template
-- Ensures completeness before expensive dev loop starts
-- Architect (evolved from ralph-architect) takes PIB and generates specs/tasks
+- Prep loop takes you from idea to ready-to-build
 - Clear handoff point between "figuring out what to build" and "building it"
 
 **Not chosen:** Single loop where Claude figures out requirements as it goes (too risky, context pollution, scope creep)
+
+---
+
+### Decision: Prep Loop Phase Order
+**Choice:** Setup → PIB Builder → Architect → Bootstrap
+
+**Rationale:** (Eric's input)
+- **Setup first:** Only needs a project name. Creates the container (folder, git, GitHub remote, .claw/ structure). Gives PIB Builder somewhere to write.
+- **PIB Builder second:** Works inside the directory. Interviews user, does Perplexity research, writes PIB to `.claw/specs/pib.md` and research docs to `.claw/docs/`.
+- **Architect third:** Reads the PIB and research docs. Generates WORKPLAN, PROMPT, specs. Now we know the full architecture.
+- **Bootstrap last:** Reads what Architect decided (especially tech stack). Installs tooling, dependencies, .claude/ config.
+
+Each phase writes files that the next phase reads. Clean data flow.
+
+**Not chosen:** PIB Builder before Setup (would have nowhere to write research docs)
 
 ---
 
